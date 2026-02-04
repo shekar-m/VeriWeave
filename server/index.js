@@ -203,6 +203,11 @@ app.get('/api/health', (req, res) => {
   res.json({ ok: true });
 });
 
+// Health check endpoint for Render
+app.get('/healthz', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 app.get('/api/history', async (req, res) => {
   try {
     const scans = await Scan.find().sort({ timestamp: -1 }).limit(10);
