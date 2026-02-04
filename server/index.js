@@ -12,24 +12,13 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-// CORS configuration
-const allowedOrigins = process.env.CLIENT_ORIGIN
-  ? process.env.CLIENT_ORIGIN.split(',').map(s => s.trim())
-  : ['https://veri-weave.vercel.app', 'http://localhost:5173', 'http://localhost:3000'];
-
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.CLIENT_ORIGIN === undefined) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true
-};
-app.use(cors(corsOptions));
+// CORS configuration - allow all origins for now (can restrict later)
+app.use(cors({
+  origin: true, // Allow all origins
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 // MongoDB Connection
@@ -213,7 +202,8 @@ app.get('/api/history', async (req, res) => {
     const scans = await Scan.find().sort({ timestamp: -1 }).limit(10);
     res.json(scans);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch history' });
+    console.error('Error fetching history:', error);
+    res.status(500).json({ error: 'Failed to fetch history', details: error.message });
   }
 });
 
