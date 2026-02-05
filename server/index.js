@@ -12,7 +12,7 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-// CORS configuration - allow all origins for now (can restrict later)
+// CORS configuration - allow all origins
 app.use(cors({
   origin: true, // Allow all origins
   credentials: true,
@@ -276,18 +276,13 @@ async function analyzeBatchFiles(files, claimText = "") {
     }
   });
 
-  console.log(`\n=== SENDING TO GEMINI ===`);
-  console.log(`Files count: ${files.length}`);
-  console.log(`Files: ${files.map(f => f.originalname).join(', ')}`);
-  console.log(`Content array length: ${1 + fileDataArray.length} (1 prompt + ${fileDataArray.length} files)`);
-  console.log(`==========================\n`);
 
   // Build content array: [prompt, file1, file2, file3, ...]
   // This sends ALL files in ONE request to Gemini for unified multimodal reasoning
   // CRITICAL: All files are sent together, NOT individually
   const contentArray = [prompt, ...fileDataArray];
   
-  console.log(`Calling Gemini generateContent with ${contentArray.length} items (1 prompt + ${fileDataArray.length} files)...`);
+  //console.log(`Calling Gemini generateContent with ${contentArray.length} items (1 prompt + ${fileDataArray.length} files)...`);
   
   // Send all files together with the prompt for multimodal reasoning
   // Gemini will analyze ALL files together and provide ONE unified response
@@ -295,18 +290,14 @@ async function analyzeBatchFiles(files, claimText = "") {
   const result = await model.generateContent(contentArray);
   const response = await result.response;
   const text = response.text();
-  
-  console.log(`\n=== GEMINI RESPONSE RECEIVED ===`);
-  console.log(`Response length: ${text.length} characters`);
-  console.log(`First 500 chars: ${text.substring(0, 500)}`);
-  console.log(`==================================\n`);
+
   
   // Extract JSON from the response
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (jsonMatch) {
     try {
       const parsedResponse = JSON.parse(jsonMatch[0]);
-      console.log("Parsed batch response:", JSON.stringify(parsedResponse, null, 2));
+      //console.log("Parsed batch response:", JSON.stringify(parsedResponse, null, 2));
       
       // Validate and ensure required fields exist
       if (typeof parsedResponse.authenticity_score !== 'number') {
@@ -410,12 +401,6 @@ app.post('/api/analyze-batch', upload.array('files', 10), async (req, res) => {
       return res.status(400).json({ error: 'Claim is required for batch analysis' });
     }
 
-    console.log(`\n=== BATCH MULTIMODAL ANALYSIS START ===`);
-    console.log(`Files count: ${req.files.length}`);
-    console.log(`Files: ${req.files.map(f => f.originalname).join(', ')}`);
-    console.log(`Claim: ${claim}`);
-    console.log(`========================================\n`);
-
     // Analyze all files together using multimodal reasoning
     // This sends ALL files in ONE request to Gemini - NOT individual requests
     const result = await analyzeBatchFiles(req.files, claim);
@@ -427,11 +412,7 @@ app.post('/api/analyze-batch', upload.array('files', 10), async (req, res) => {
     result.batch_size = req.files.length;
     result.analysis_type = 'multimodal_batch';
     
-    console.log(`\n=== BATCH ANALYSIS RESULT ===`);
-    console.log(`Authenticity Score: ${result.authenticity_score}%`);
-    console.log(`Risk Level: ${result.risk_level}`);
-    console.log(`Verdict: ${result.verdict}`);
-    console.log(`==============================\n`);
+
     
     // Save to MongoDB (single record for the batch - NOT individual records)
     const newScan = new Scan({

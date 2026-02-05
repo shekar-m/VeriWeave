@@ -149,7 +149,12 @@ function App() {
           'Content-Type': 'multipart/form-data',
         },
       });
-      setResult(response.data);
+      // Ensure filename is set from the uploaded file (use server response or fallback to uploaded file name)
+      const resultData = {
+        ...response.data,
+        filename: response.data.filename || file.name || 'Uploaded File'
+      };
+      setResult(resultData);
       fetchHistory(); // Refresh history list
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to analyze file. Please check your connection and API key.');
@@ -255,11 +260,11 @@ function App() {
           'Content-Type': 'multipart/form-data',
         },
       });
-      console.log('Batch response:', response.data); // Debug log
+      //console.log('Batch response:', response.data); // Debug log
       
       if (response.data) {
         let batchResult = response.data;
-        console.log('Batch response received:', batchResult); // Debug log
+        //console.log('Batch response received:', batchResult); // Debug log
         
         // Handle old format: if response has 'results' array, use the first result or combine them
         if (batchResult.results && Array.isArray(batchResult.results) && batchResult.results.length > 0) {
@@ -299,7 +304,7 @@ function App() {
             analysis_type: 'multimodal_batch_combined'
           };
           
-          console.log('Converted to unified result:', batchResult);
+          //console.log('Converted to unified result:', batchResult);
         } else {
           // New format: single unified result
           // Ensure all required fields are present
@@ -355,7 +360,7 @@ function App() {
         }
         
         setBatchResults([batchResult]);
-        console.log('Batch results set successfully:', batchResult);
+        //console.log('Batch results set successfully:', batchResult);
       } else {
         console.error('No data in response:', response);
         setError('No data received from server');
@@ -406,7 +411,20 @@ function App() {
     // File info - with wrapping
     pdf.setFontSize(12);
     pdf.setTextColor(0, 0, 0);
-    const filenameText = `File: ${result.filename || 'Unknown'}`;
+    
+    // Handle filename display - support both single file and batch filenames
+    let filenameDisplay = 'Unknown';
+    if (result.filenames && result.filenames.length > 0) {
+      // Batch analysis - show all filenames
+      filenameDisplay = result.filenames.length === 1 
+        ? result.filenames[0]
+        : `${result.filenames.length} files: ${result.filenames.join(', ')}`;
+    } else if (result.filename) {
+      // Single file
+      filenameDisplay = result.filename;
+    }
+    
+    const filenameText = `File${result.filenames && result.filenames.length > 1 ? 's' : ''}: ${filenameDisplay}`;
     const filenameLines = pdf.splitTextToSize(filenameText, maxContentWidth);
     pdf.text(filenameLines, margin, yPos);
     yPos += filenameLines.length * 6 + 5;
@@ -531,7 +549,19 @@ function App() {
       pdf.text(footerText, footerX, footerY, { align: 'center' });
     }
 
-    pdf.save(`veriweave-report-${result.filename || 'analysis'}-${Date.now()}.pdf`);
+    // Generate PDF filename
+    let pdfFilename = 'veriweave-report';
+    if (result.filenames && result.filenames.length > 0) {
+      // Use first filename for batch, or create a batch name
+      pdfFilename = result.filenames.length === 1 
+        ? `veriweave-report-${result.filenames[0].replace(/[^a-z0-9]/gi, '-').toLowerCase()}`
+        : `veriweave-report-batch-${result.filenames.length}-files`;
+    } else if (result.filename) {
+      pdfFilename = `veriweave-report-${result.filename.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`;
+    } else {
+      pdfFilename = 'veriweave-report-analysis';
+    }
+    pdf.save(`${pdfFilename}-${Date.now()}.pdf`);
   };
 
   const getRiskColor = (level: string) => {
