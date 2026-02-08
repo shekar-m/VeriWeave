@@ -35,6 +35,15 @@ const scanSchema = new mongoose.Schema({
   reasons: [String],
   signals: [String],
   verdict: String,
+  category_scores: {
+    multimodal_match: Number,
+    document_forensics: Number,
+    visual_artifacts: Number,
+    logical_consistency: Number,
+    synthetic_signs: Number,
+    shadow_perspective: Number
+  },
+  filenames: [String], // For batch analysis
   timestamp: { type: Date, default: Date.now }
 });
 
