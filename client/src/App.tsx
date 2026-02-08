@@ -385,6 +385,31 @@ function App() {
     const maxContentWidth = pageWidth - 2 * margin; // Maximum content width
     let yPos = margin;
 
+    // Helper function to sanitize text for PDF (fixes Unicode/special character issues)
+    const sanitizeTextForPDF = (text: string): string => {
+      if (!text) return '';
+      
+      // Replace common currency symbols and special characters with ASCII equivalents
+      let sanitized = text
+        .replace(/₹/g, 'Rs.')
+        .replace(/€/g, 'EUR')
+        .replace(/£/g, 'GBP')
+        .replace(/¥/g, 'JPY')
+        .replace(/¹/g, 'Rs.')
+        .replace(/²/g, '')
+        .replace(/³/g, '')
+        .replace(/–/g, '-')
+        .replace(/—/g, '-')
+        .replace(/"|"/g, '"')
+        .replace(/'|'/g, "'")
+        .replace(/…/g, '...');
+      
+      
+      sanitized = sanitized.replace(/[^\x00-\x7F]/g, '?');
+      
+      return sanitized;
+    };
+
     // Helper function to check if we need a new page
     const checkPageBreak = (requiredSpace: number) => {
       if (yPos + requiredSpace > pageHeight - footerHeight) {
@@ -424,12 +449,12 @@ function App() {
       filenameDisplay = result.filename;
     }
     
-    const filenameText = `File${result.filenames && result.filenames.length > 1 ? 's' : ''}: ${filenameDisplay}`;
+    const filenameText = `File${result.filenames && result.filenames.length > 1 ? 's' : ''}: ${sanitizeTextForPDF(filenameDisplay)}`;
     const filenameLines = pdf.splitTextToSize(filenameText, maxContentWidth);
     pdf.text(filenameLines, margin, yPos);
     yPos += filenameLines.length * 6 + 5;
 
-    const claimText = `Claim: ${result.claim || 'No claim provided'}`;
+    const claimText = `Claim: ${sanitizeTextForPDF(result.claim || 'No claim provided')}`;
     const claimLines = pdf.splitTextToSize(claimText, maxContentWidth);
     pdf.text(claimLines, margin, yPos);
     yPos += claimLines.length * 6 + 5;
@@ -449,7 +474,7 @@ function App() {
     checkPageBreak(20);
     pdf.setFontSize(12);
     pdf.setTextColor(0, 0, 0);
-    const verdictText = `Verdict: ${result.verdict}`;
+    const verdictText = `Verdict: ${sanitizeTextForPDF(result.verdict)}`;
     const verdictLines = pdf.splitTextToSize(verdictText, maxContentWidth);
     pdf.text(verdictLines, margin, yPos);
     yPos += verdictLines.length * 7 + 8;
@@ -481,19 +506,79 @@ function App() {
       yPos += 5;
     }
 
+    // Helper function to highlight risky words in bold
+    const highlightRiskyWords = (text: string): Array<{text: string, bold: boolean}> => {
+      const riskyWords = [
+        'fraud', 'tampered', 'tampering', 'inconsistent', 'inconsistency', 'mismatch', 'mismatched',
+        'suspicious', 'suspicion', 'fake', 'falsified', 'manipulated', 'manipulation', 'altered',
+        'forged', 'forgery', 'discrepancy', 'discrepancies', 'contradiction', 'contradictory',
+        'invalid', 'illegitimate', 'unauthorized', 'high risk', 'low score', 'failed', 'failure',
+        'error', 'warning', 'alert', 'critical', 'danger', 'dangerous', 'unverified', 'unauthentic'
+      ];
+      
+      const words = text.split(/(\s+)/);
+      const result: Array<{text: string, bold: boolean}> = [];
+      
+      words.forEach(word => {
+        const lowerWord = word.toLowerCase().replace(/[.,!?;:]/g, '');
+        const isRisky = riskyWords.some(risky => lowerWord.includes(risky.toLowerCase()));
+        result.push({ text: word, bold: isRisky });
+      });
+      
+      return result;
+    };
+
+    // Helper function to render text with bold highlighting
+    const renderTextWithBold = (text: string, x: number, y: number, maxWidth: number): number => {
+      const parts = highlightRiskyWords(text);
+      let currentX = x;
+      let currentY = y;
+      const lineHeight = 7; 
+      const currentFontSize = pdf.getFontSize();
+      
+      parts.forEach((part) => {
+        const isSpace = /^\s+$/.test(part.text);
+        
+        // Set font style before measuring width
+        if (part.bold && !isSpace) {
+          pdf.setFont('helvetica', 'bold');
+        } else {
+          pdf.setFont('helvetica', 'normal');
+        }
+        pdf.setFontSize(currentFontSize); 
+        
+        const wordWidth = pdf.getTextWidth(part.text);
+        
+        // Check if we need a new line (with some margin for safety)
+        if (currentX + wordWidth > x + maxWidth - 2 && !isSpace && currentX > x) {
+          currentX = x;
+          currentY += lineHeight;
+        }
+        
+        pdf.text(part.text, currentX, currentY);
+        currentX += wordWidth;
+      });
+      
+     
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(currentFontSize);
+      
+      return currentY + lineHeight;
+    };
+
     // Reasons - with wrapping and page breaks
     checkPageBreak(20);
-    pdf.setFontSize(14);
+    pdf.setFontSize(16);
     pdf.setTextColor(37, 99, 235);
     pdf.text('Analysis Reasons:', margin, yPos);
-    yPos += 8;
-    pdf.setFontSize(10);
+    yPos += 10; 
+    pdf.setFontSize(11); 
     pdf.setTextColor(0, 0, 0);
     
     result.reasons.forEach((reason, index) => {
-      const reasonText = `${index + 1}. ${reason}`;
+      const reasonText = `${index + 1}. ${sanitizeTextForPDF(reason)}`;
       const reasonLines = pdf.splitTextToSize(reasonText, maxContentWidth - 5);
-      const requiredSpace = reasonLines.length * 6 + 3;
+      const requiredSpace = reasonLines.length * 7 + 4; 
       
       if (checkPageBreak(requiredSpace)) {
         // If we added a new page, add a small header continuation note
@@ -501,40 +586,50 @@ function App() {
         pdf.setTextColor(100, 100, 100);
         pdf.text('(continued)', margin, yPos);
         yPos += 5;
-        pdf.setFontSize(10);
+        pdf.setFontSize(11);
         pdf.setTextColor(0, 0, 0);
       }
       
-      pdf.text(reasonLines, margin + 5, yPos);
-      yPos += reasonLines.length * 6 + 3;
+     
+      let startY = yPos;
+      reasonLines.forEach((line: string) => {
+        const finalY = renderTextWithBold(line, margin + 5, startY, maxContentWidth - 5);
+        startY = finalY;
+      });
+      yPos = startY + 2;
     });
     yPos += 5;
 
     // Signals - with wrapping
     checkPageBreak(20);
-    pdf.setFontSize(14);
+    pdf.setFontSize(16);
     pdf.setTextColor(37, 99, 235);
     pdf.text('Technical Signals:', margin, yPos);
-    yPos += 8;
-    pdf.setFontSize(10);
+    yPos += 10;
+    pdf.setFontSize(11);
     pdf.setTextColor(0, 0, 0);
     
     result.signals.forEach((signal) => {
-      const signalText = `• ${signal}`;
+      const signalText = `• ${sanitizeTextForPDF(signal)}`;
       const signalLines = pdf.splitTextToSize(signalText, maxContentWidth - 5);
-      const requiredSpace = signalLines.length * 6;
+      const requiredSpace = signalLines.length * 7;
       
       if (checkPageBreak(requiredSpace)) {
         pdf.setFontSize(9);
         pdf.setTextColor(100, 100, 100);
         pdf.text('(continued)', margin, yPos);
         yPos += 5;
-        pdf.setFontSize(10);
+        pdf.setFontSize(11);
         pdf.setTextColor(0, 0, 0);
       }
       
-      pdf.text(signalLines, margin + 5, yPos);
-      yPos += signalLines.length * 6;
+     
+      let startY = yPos;
+      signalLines.forEach((line: string) => {
+        const finalY = renderTextWithBold(line, margin + 5, startY, maxContentWidth - 5);
+        startY = finalY;
+      });
+      yPos = startY + 2;
     });
 
     // Add footer/watermark on all pages
@@ -765,14 +860,18 @@ function App() {
                             <div key={idx} className="bg-slate-950 border border-slate-700 rounded-xl p-3">
                               <div className="flex items-center justify-between mb-2">
                                 <span className="text-[10px] font-bold text-slate-300 truncate flex-1">{f.name}</span>
-                                <button onClick={() => {
-                                  const newFiles = files.filter((_, i) => i !== idx);
-                                  setFiles(newFiles);
-                                  const newClaims = { ...fileClaims };
-                                  delete newClaims[f.name];
-                                  setFileClaims(newClaims);
-                                }} className="text-red-400 hover:text-red-300 ml-2">
-                                  <X className="h-3 w-3" />
+                                <button 
+                                  onClick={() => {
+                                    const newFiles = files.filter((_, i) => i !== idx);
+                                    setFiles(newFiles);
+                                    const newClaims = { ...fileClaims };
+                                    delete newClaims[f.name];
+                                    setFileClaims(newClaims);
+                                  }} 
+                                  className="bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 hover:text-red-300 p-1 rounded transition-colors flex items-center justify-center ml-2"
+                                  title="Remove file"
+                                >
+                                  <X className="h-3.5 w-3.5" />
                                 </button>
                               </div>
                               <textarea
@@ -814,8 +913,12 @@ function App() {
                             {files.map((f, idx) => (
                               <div key={idx} className="flex items-center justify-between text-[10px] text-slate-400 mb-2 last:mb-0">
                                 <span className="truncate flex-1">{f.name}</span>
-                                <button onClick={() => setFiles(files.filter((_, i) => i !== idx))} className="text-red-400 hover:text-red-300 ml-2">
-                                  <X className="h-3 w-3" />
+                                <button 
+                                  onClick={() => setFiles(files.filter((_, i) => i !== idx))} 
+                                  className="bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-400 hover:text-red-300 p-1 rounded transition-colors flex items-center justify-center ml-2"
+                                  title="Remove file"
+                                >
+                                  <X className="h-3.5 w-3.5" />
                                 </button>
                               </div>
                             ))}
@@ -856,9 +959,10 @@ function App() {
                       )}
                       <button 
                         onClick={() => { setFile(null); setPreviewUrl(null); }}
-                        className="absolute top-2 right-2 bg-red-500/80 backdrop-blur-sm text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+                        className="absolute top-2 right-2 bg-red-500/80 backdrop-blur-sm text-white p-1.5 rounded-full hover:bg-red-600 transition-colors flex items-center justify-center"
+                        title="Remove file"
                       >
-                        <AlertTriangle className="h-3.5 w-3.5" />
+                        <X className="h-4 w-4" />
                       </button>
                     </div>
                   )}
