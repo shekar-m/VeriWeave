@@ -688,7 +688,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-[#020617] text-slate-200 py-12 px-4 sm:px-6 lg:px-8 font-sans w-full">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <header className="text-center mb-12">
           <div className="flex justify-center items-center mb-4">
             <ShieldCheck className="h-14 w-14 text-blue-500 mr-3" />
@@ -696,16 +696,17 @@ function App() {
               Veri<span className="text-blue-500">Weave</span>
             </h1>
           </div>
-          <p className="mt-3 text-xl text-slate-400 max-w-2xl mx-auto flex items-center justify-center gap-2">
-            <span className="bg-blue-500/10 text-blue-500 px-3 py-1 rounded-full text-xs font-bold border border-blue-500/20 uppercase tracking-widest">Multimodal Reasoning</span>
-            Detecting AI-manipulated documents, images, and videos.
+          <p className="mt-3 text-xl text-slate-400 max-w-3xl mx-auto flex flex-wrap items-center justify-center gap-2 pl-4">
+            <span className="bg-blue-500/10 text-blue-500 px-3 py-1 rounded-full text-xs font-bold border border-blue-500/20 uppercase tracking-widest">Powered by Gemini 3</span>
+            <span className="bg-purple-500/10 text-purple-500 px-3 py-1 rounded-full text-xs font-bold border border-purple-500/20 uppercase tracking-widest">Batch Multimodal Analysis</span>
+            <span className="text-slate-400 ml-3">Multimodal cross-file analysis for fraud detection and document verification.</span>
           </p>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           {/* Left Column: Upload & Input */}
-          <div className="lg:col-span-4 space-y-6">
-            <div className="bg-slate-900/50 rounded-3xl p-6 border border-slate-800 backdrop-blur-sm shadow-2xl">
+          <div className="lg:col-span-5 space-y-6">
+            <div className="bg-slate-900/50 rounded-3xl p-8 border border-slate-800 backdrop-blur-sm shadow-2xl">
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-lg font-bold text-white flex items-center">
@@ -726,7 +727,7 @@ function App() {
                 
                 {/* Mode Selector */}
                 <div className="mb-4">
-                  <label className="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">
+                  <label className="block text-sm font-semibold text-slate-400 mb-2 uppercase tracking-wider">
                     Analysis Mode
                   </label>
                   <div className="grid grid-cols-3 gap-2">
@@ -802,7 +803,7 @@ function App() {
                 {/* Sample Data Buttons - Only show in Single mode */}
                 {!isBatchMode && !isMultiCaseMode && (
                   <div>
-                    <label className="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">
+                    <label className="block text-sm font-semibold text-slate-400 mb-2 uppercase tracking-wider">
                       Quick Samples
                     </label>
                     <div className="grid grid-cols-2 gap-2">
@@ -830,7 +831,7 @@ function App() {
               <div className="space-y-4">
                 {!isMultiCaseMode && (
                   <div className="relative">
-                    <label className="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Claim (Context)</label>
+                    <label className="block text-sm font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Claim (Context)</label>
                     <textarea
                       value={claim}
                       onChange={(e) => setClaim(e.target.value)}
@@ -844,7 +845,7 @@ function App() {
                   {isMultiCaseMode ? (
                     <>
                       {files.length === 0 ? (
-                        <div className="border-2 border-dashed border-slate-700 rounded-2xl p-6 flex flex-col items-center justify-center transition-all hover:border-purple-500/50 hover:bg-purple-500/5 group">
+                        <div className="border-2 border-dashed border-slate-700 rounded-2xl p-8 flex flex-col items-center justify-center transition-all hover:border-purple-500/50 hover:bg-purple-500/5 group">
                           <Files className="h-8 w-8 text-slate-500 mb-3 group-hover:text-purple-500 transition-colors" />
                           <label className="cursor-pointer text-center">
                             <span className="text-purple-500 font-bold text-md block mb-1 underline-offset-4 hover:underline">Multi-Case Upload</span>
@@ -897,7 +898,7 @@ function App() {
                   ) : isBatchMode ? (
                     <>
                       {files.length === 0 ? (
-                        <div className="border-2 border-dashed border-slate-700 rounded-2xl p-6 flex flex-col items-center justify-center transition-all hover:border-blue-500/50 hover:bg-blue-500/5 group">
+                        <div className="border-2 border-dashed border-slate-700 rounded-2xl p-8 flex flex-col items-center justify-center transition-all hover:border-blue-500/50 hover:bg-blue-500/5 group">
                           <Files className="h-8 w-8 text-slate-500 mb-3 group-hover:text-blue-500 transition-colors" />
                           <label className="cursor-pointer text-center">
                             <span className="text-blue-500 font-bold text-md block mb-1 underline-offset-4 hover:underline">Batch Upload</span>
@@ -933,7 +934,7 @@ function App() {
                       )}
                     </>
                   ) : !file ? (
-                    <div className="border-2 border-dashed border-slate-700 rounded-2xl p-6 flex flex-col items-center justify-center transition-all hover:border-blue-500/50 hover:bg-blue-500/5 group">
+                    <div className="border-2 border-dashed border-slate-700 rounded-2xl p-8 flex flex-col items-center justify-center transition-all hover:border-blue-500/50 hover:bg-blue-500/5 group">
                       <Upload className="h-8 w-8 text-slate-500 mb-3 group-hover:text-blue-500 transition-colors" />
                       <label className="cursor-pointer text-center">
                         <span className="text-blue-500 font-bold text-md block mb-1 underline-offset-4 hover:underline">Evidence Upload</span>
@@ -1019,7 +1020,7 @@ function App() {
             </div>
 
             {/* History Section */}
-            <div className="bg-slate-900/30 rounded-3xl p-6 border border-slate-800/50 backdrop-blur-sm">
+            <div className="bg-slate-900/30 rounded-3xl p-8 border border-slate-800/50 backdrop-blur-sm">
               <h3 className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-4 flex items-center">
                 <History className="h-3 w-3 mr-2" />
                 Recent Audit Logs
@@ -1057,7 +1058,7 @@ function App() {
           </div>
 
           {/* Right Column: Results & Timeline */}
-          <div className="lg:col-span-8 space-y-6">
+          <div className="lg:col-span-7 space-y-6">
             {/* Empty State - Only show when not loading and no results */}
             {!result && !loading && !batchLoading && !multiCaseLoading && batchResults.length === 0 && multiCaseResults.length === 0 && (
               <div className="h-full min-h-[500px] border-2 border-dashed border-slate-800 rounded-3xl flex flex-col items-center justify-center text-slate-600 p-12 text-center">
@@ -1109,12 +1110,12 @@ function App() {
                 {/* Result Hero */}
                 <div className="bg-slate-900 rounded-3xl p-8 border border-slate-800 shadow-2xl relative overflow-hidden">
                   <div className="flex justify-between items-start mb-6">
-                    <div className={`px-6 py-2 rounded-bl-2xl text-[10px] font-black uppercase tracking-widest ${getRiskColor(result.risk_level)}`}>
+                    <div className={`px-6 py-2 rounded-bl-2xl text-xs font-black uppercase tracking-widest ${getRiskColor(result.risk_level)}`}>
                       {getRiskStatus(result.authenticity_score).label} • {result.risk_level} RISK
                     </div>
                     <button
                       onClick={exportToPDF}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2"
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold uppercase tracking-wider transition-all flex items-center gap-2"
                     >
                       <Download className="h-4 w-4" />
                       Export PDF
@@ -1161,7 +1162,7 @@ function App() {
                 {/* Confidence Breakdown */}
                 {result.category_scores && (
                   <div className="bg-slate-900 rounded-3xl p-8 border border-slate-800 shadow-2xl">
-                    <h3 className="text-sm font-black text-slate-500 uppercase tracking-[0.2em] mb-6">Confidence Breakdown</h3>
+                    <h3 className="text-base font-black text-slate-500 uppercase tracking-[0.2em] mb-6">Confidence Breakdown</h3>
                     <div className="space-y-4">
                       {Object.entries(result.category_scores).map(([key, score]) => {
                         const labels: { [key: string]: string } = {
@@ -1175,8 +1176,8 @@ function App() {
                         return (
                           <div key={key} className="space-y-2">
                             <div className="flex justify-between items-center">
-                              <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">{labels[key] || key}</span>
-                              <span className="text-xs font-black text-blue-400">{score}%</span>
+                              <span className="text-sm font-bold text-slate-300 uppercase tracking-wider">{labels[key] || key}</span>
+                              <span className="text-sm font-black text-blue-400">{score}%</span>
                             </div>
                             <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
                               <div 
@@ -1193,7 +1194,7 @@ function App() {
 
                 {/* Evidence Timeline */}
                 <div className="bg-slate-900 rounded-3xl p-8 border border-slate-800 shadow-2xl">
-                  <h3 className="text-sm font-black text-slate-500 uppercase tracking-[0.2em] mb-8">Evidence Timeline</h3>
+                  <h3 className="text-base font-black text-slate-500 uppercase tracking-[0.2em] mb-8">Evidence Timeline</h3>
                   <div className="relative">
                     <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-slate-800"></div>
                     
@@ -1371,15 +1372,6 @@ function App() {
           </div>
       </div>
 
-        <footer className="mt-16 text-center border-t border-slate-900 pt-8 space-y-4">
-          <p className="text-slate-600 text-[10px] font-medium max-w-2xl mx-auto leading-relaxed uppercase tracking-[0.1em]">
-            Disclaimer: VeriWeave provides AI-assisted forensic analysis for informational purposes. While highly accurate, the results should be used as part of a broader verification workflow. Always verify high-stakes documents manually.
-          </p>
-          <p className="text-slate-500 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2">
-            <ShieldCheck className="h-3 w-3" />
-            Built for the AI Era • Powered by Gemini 3
-          </p>
-        </footer>
       </div>
 
       <style>{`
@@ -1403,6 +1395,26 @@ function App() {
           animation: shake 0.4s ease-in-out;
         }
       `}</style>
+      
+      {/* Footer with Disclaimer */}
+      <footer className="mt-16 mb-8 text-center">
+        <div className="max-w-4xl mx-auto px-6">
+          {/* Horizontal Line */}
+          <div className="border-t border-slate-800 mb-6"></div>
+          
+          <div className="flex items-start justify-center gap-3 text-sm text-slate-400 mb-4">
+            <Info className="h-5 w-5 text-slate-500 mt-0.5 flex-shrink-0" />
+            <p className="leading-relaxed text-center">
+              <span className="font-semibold text-slate-300">Disclaimer:</span> VeriWeave provides AI-assisted forensic analysis for informational purposes. While highly accurate, the results should be used as part of a broader verification workflow. Always verify high-stakes documents manually.
+            </p>
+          </div>
+         
+          <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
+            <ShieldCheck className="h-4 w-4 text-slate-500 flex-shrink-0" />
+            <span className="font-semibold text-slate-300">Built for the AI Era • Powered by Gemini 3</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
